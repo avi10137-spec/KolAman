@@ -1,0 +1,12 @@
+﻿{
+  "Elasticsearch": {
+    "Url": "http://localhost:9200",
+    "IndexName": "notification-logs"
+  },
+
+
+  "Kafka": {
+    "BootstrapServers": "localhost:9092",
+    "Topic": "notifications"
+  }
+}
