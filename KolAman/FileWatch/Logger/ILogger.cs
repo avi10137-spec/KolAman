@@ -8,8 +8,8 @@ namespace FileWatch.Logger
 {
     public interface ICustomLogger
     {
-        Task LogInfoAsync(string message, object? extraData = null);
-        Task LogWarningAsync(string message, object? extraData = null);
-        Task LogErrorAsync(string message, Exception? exception = null, object? extraData = null);
+        Task LogInfoAsync(string message);
+        Task LogWarningAsync(string message);
+        Task LogErrorAsync(string message, Exception? exception = null);
     }
 }

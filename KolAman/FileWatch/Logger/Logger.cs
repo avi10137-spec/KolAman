@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Elastic.Clients.Elasticsearch;
+using FileWatch.Models;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Elastic.Clients.Elasticsearch;
-using Microsoft.Extensions.Configuration;
 namespace FileWatch.Logger
 {
     public class CustomLogger : ICustomLogger
@@ -18,16 +19,16 @@ namespace FileWatch.Logger
             _logIndexName = configuration["Elasticsearch:LogIndexName"] ?? "notification-logs";
         }
 
-        public Task LogInfoAsync(string message, object? extraData = null)
-            => WriteLogAsync("INFO", message, null, extraData);
+        public Task LogInfoAsync(string message)
+            => WriteLogAsync("INFO", message,null);
 
-        public Task LogWarningAsync(string message, object? extraData = null)
-            => WriteLogAsync("WARN", message, null, extraData);
+        public Task LogWarningAsync(string message)
+            => WriteLogAsync("WARN", message, null);
 
-        public Task LogErrorAsync(string message, Exception? exception = null, object? extraData = null)
-            => WriteLogAsync("ERROR", message, exception, extraData);
+        public Task LogErrorAsync(string message, Exception? exception = null)
+            => WriteLogAsync("ERROR", message, exception);
 
-        private async Task WriteLogAsync(string level, string message, Exception? exception, object? extraData)
+        private async Task WriteLogAsync(string level, string message, Exception? exception)
         {
             var timestamp = DateTime.UtcNow;
 
@@ -35,13 +36,13 @@ namespace FileWatch.Logger
 
             try
             {
-                var logEntry = new
+                var logEntry = new NotificationLog
                 {
                     Timestamp = timestamp,
                     Level = level,
                     Message = message,
-                    Exception = exception?.ToString(),
-                    Data = extraData
+                    Exception = exception?.ToString()
+                   
                 };
 
                 await _elasticClient.IndexAsync(logEntry, idx => idx.Index(_logIndexName));
