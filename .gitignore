@@ -1,0 +1,25 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+.env
+*.sqldb
+*.sqlite3
+
+# ==========================================
+# C# / .NET
+# ==========================================
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+*.userprefs
