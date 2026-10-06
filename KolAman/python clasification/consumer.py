@@ -1,4 +1,4 @@
-from testi import *
+from classification import *
 from confluent_kafka import Consumer
 import redis
 import json
@@ -32,7 +32,7 @@ def validate_alert(alert):
 def create_kafka_consumer():
     conf = {
         'bootstrap.servers': 'localhost:9092',
-        'group.id': 'classifier-group9',
+        'group.id': 'classifier-group11',
         'auto.offset.reset': 'earliest'
     }
     consumer = Consumer(conf)
@@ -79,9 +79,9 @@ def consum_from_kafka():
                 is_valid, message = validate_alert(alert)
                 if is_valid:
                     print("Valid alert")
-                    print(alert)
+                    # print(alert)
                     alert_id = alert["alert_id"]
-                    print(alert_id)
+                    # print(alert_id)
                     if redis_client.exists(f"alert:{alert_id}"):
                         print(f"Duplicate alert: {alert_id}")
                         continue
@@ -91,8 +91,8 @@ def consum_from_kafka():
                         "1"
                     )
 
-                    print(f"New alert: {alert_id}")
-                    print(alert)
+                    # print(f"New alert: {alert_id}")
+                    # print(alert)
                     process_alert(alert)
                 else:
                     print(f"Invalid alert: {message}")

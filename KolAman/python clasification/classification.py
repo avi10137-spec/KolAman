@@ -67,6 +67,7 @@ def process_alert(alert):
     print(f" {alert['alert_id']} clasfication to {command}")
 
     send_to_rabbit(alert, command)
+    print("send to rabbit in sucssfuli")
 
 
 
