@@ -1,4 +1,5 @@
 from classification import *
+from logger_ import ElasticLogger
 from confluent_kafka import Consumer
 import redis
 import json
@@ -32,7 +33,7 @@ def validate_alert(alert):
 def create_kafka_consumer():
     conf = {
         'bootstrap.servers': 'localhost:9092',
-        'group.id': 'classifier-group11',
+        'group.id': 'classifier-group15',
         'auto.offset.reset': 'earliest'
     }
     consumer = Consumer(conf)
@@ -62,18 +63,20 @@ def consum_from_kafka():
                     print("Stopping consumer...")
                     break
 
-
+                logger.warning("msg is none")
                 continue
 
 
             if msg.error():
                 print(f"Kafka error: {msg.error()}")
+                logger.error(f"Kafka error: {msg.error()}")
                 continue
             try:
                 alert = json.loads(msg.value().decode("utf-8"))
                 print(alert)
             except json.JSONDecodeError:
                 print("Invalid JSON")
+                logger.error("Invalid json")
                 continue
             else:
                 is_valid, message = validate_alert(alert)
@@ -84,6 +87,7 @@ def consum_from_kafka():
                     # print(alert_id)
                     if redis_client.exists(f"alert:{alert_id}"):
                         print(f"Duplicate alert: {alert_id}")
+                        logger.info(f"Duplicate alert: {alert_id}")
                         continue
                     redis_client.setex(
                         f"alert:{alert_id}",
@@ -94,11 +98,14 @@ def consum_from_kafka():
                     # print(f"New alert: {alert_id}")
                     # print(alert)
                     process_alert(alert)
+                    logger.info("send alert from rabbit")
                 else:
                     print(f"Invalid alert: {message}")
+                    logger.warning(f"Invalid alert: {message}")
                     continue
     finally:
         consumer.close()
+logger = ElasticLogger(index_name="clasification-logs")
 if __name__ == "__main__":
     consum_from_kafka()
 
