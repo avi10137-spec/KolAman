@@ -1,11 +1,6 @@
-﻿using consumerrabbit.Maping;
-using consumerrabbit.Models;
-using consumerrabbit.Models.consumerrabbit.Models;
+﻿using consumerrabbit.Models.consumerrabbit.Models;
 using consumerrabbit.Repository;
-using consumerrabbit.Services;
-using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -31,7 +26,7 @@ namespace consumerrabbit.Services
             var host = _configuration["RabbitMQ:Host"] ?? "localhost";
             var username = _configuration["RabbitMQ:Username"] ?? "guest";
             var password = _configuration["RabbitMQ:Password"] ?? "guest";
-            var scaner = new AlertScannerService(_repository);
+
             var connectionFactory = new ConnectionFactory
             {
                 HostName = host,
@@ -52,24 +47,11 @@ namespace consumerrabbit.Services
 
             foreach (var queue in queues)
             {
-                await CreateConsumerAsync(
-                    channel,
-                    queue.Key,
-                    queue.Value);
+                await CreateConsumerAsync(channel, queue.Key, queue.Value);
             }
-       
-             
 
-           
+            Console.WriteLine("Consumer started. Listening for alerts from all commands...");
 
-
-          
-
-            Console.WriteLine("Consumer started.");
-            //Console.WriteLine($"lisen for {}");
-            Console.WriteLine("Listening for alerts from all commands...");
-            //Console.WriteLine();
-            scaner.StartAsync();
             await Task.Delay(Timeout.Infinite);
         }
 
@@ -79,22 +61,21 @@ namespace consumerrabbit.Services
             string command)
         {
             await channel.QueueDeclareAsync(
-                queueName,
+                queue: queueName,
                 durable: false,
                 exclusive: false,
                 autoDelete: false);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
-            Console.WriteLine($"start{queueName}");
+            Console.WriteLine($"Starting consumer for queue: {queueName}");
+
             consumer.ReceivedAsync += async (sender, eventArgs) =>
             {
                 try
                 {
-                    string json = Encoding.UTF8.GetString(
-                        eventArgs.Body.ToArray());
-                    
-                    Console.WriteLine(
-                        $"Received message from {command}");
+                    string json = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+
+                    Console.WriteLine($"Received message from {command}");
 
                     Alert? alert = JsonSerializer.Deserialize<Alert>(
                         json,
@@ -105,14 +86,8 @@ namespace consumerrabbit.Services
 
                     if (alert == null || !Validate(alert))
                     {
-                        Console.WriteLine(
-                            $"Invalid alert received from {command}");
-
-                        await channel.BasicNackAsync(
-                            eventArgs.DeliveryTag,
-                            false,
-                            false);
-
+                        Console.WriteLine($"Invalid alert received from {command}");
+                        await channel.BasicNackAsync(eventArgs.DeliveryTag, false, false);
                         return;
                     }
 
@@ -120,55 +95,31 @@ namespace consumerrabbit.Services
 
                     await _repository.SaveAsync(alert);
 
-                    await channel.BasicAckAsync(
-                        eventArgs.DeliveryTag,
-                        false);
-
-                    Console.WriteLine(
-                        $"Alert {alert.AlertId} saved | Command: {command}");
+                    await channel.BasicAckAsync(eventArgs.DeliveryTag, false);
+                    Console.WriteLine($"Alert {alert.AlertId} saved | Command: {command}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(
-                        $"Error processing alert: {ex.Message}");
-
-                    await channel.BasicNackAsync(
-                        eventArgs.DeliveryTag,
-                        false,
-                        false);
+                    Console.WriteLine($"Error processing alert: {ex.Message}");
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, false, false);
                 }
             };
 
             await channel.BasicConsumeAsync(
-                queueName,
+                queue: queueName,
                 autoAck: false,
                 consumer: consumer);
         }
 
         private static bool Validate(Alert alert)
         {
-            if (string.IsNullOrWhiteSpace(alert.AlertId))
-                return false;
-
-            if (string.IsNullOrWhiteSpace(alert.Title))
-                return false;
-
-            if (string.IsNullOrWhiteSpace(alert.Content))
-                return false;
-
-            if (alert.Lat < -90 || alert.Lat > 90)
-                return false;
-
-            if (alert.Lon < -180 || alert.Lon > 180)
-                return false;
+            if (string.IsNullOrWhiteSpace(alert.AlertId)) return false;
+            if (string.IsNullOrWhiteSpace(alert.Title)) return false;
+            if (string.IsNullOrWhiteSpace(alert.Content)) return false;
+            if (alert.Lat < -90 || alert.Lat > 90) return false;
+            if (alert.Lon < -180 || alert.Lon > 180) return false;
 
             return true;
         }
-       
     }
 }
-
-
-
-
-

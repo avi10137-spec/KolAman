@@ -140,6 +140,44 @@
 //        }
 //    }
 //}
+//using consumerrabbit.Repository;
+//using Microsoft.Extensions.DependencyInjection;
+
+//namespace consumerrabbit.Services
+//{
+//    public class AlertScannerService
+//    {
+//        private readonly IServiceScopeFactory _scopeFactory;
+//        private readonly TaskManagerService _taskManager;
+
+//        public AlertScannerService(
+//            IServiceScopeFactory scopeFactory,
+//            TaskManagerService taskManager)
+//        {
+//            _scopeFactory = scopeFactory;
+//            _taskManager = taskManager;
+//        }
+
+//        public async Task StartAsync()
+//        {
+//            while (true)
+//            {
+//                using (var scope = _scopeFactory.CreateScope())
+//                {
+//                    var repository = scope.ServiceProvider.GetRequiredService<AlertRepository>();
+//                    var alerts = await repository.GetNewAlertsAsync();
+
+//                    foreach (var alert in alerts)
+//                    {
+//                        await _taskManager.HandleAlertAsync(alert);
+//                    }
+//                }
+
+//                await Task.Delay(1000);
+//            }
+//        }
+//    }
+//}
 
 
 

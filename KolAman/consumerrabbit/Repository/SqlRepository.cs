@@ -1,6 +1,7 @@
 ﻿using consumerrabbit.Maping;
 using consumerrabbit.Models;
 using consumerrabbit.Models.consumerrabbit.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,16 +19,33 @@ namespace consumerrabbit.Repository
         public async Task SaveAsync(Alert alert)
         {
 
+            var existingAlert = await _dbcontext.Alerts.FindAsync(alert.AlertId);
 
-            _dbcontext.Alerts.Add(alert);
+            if (existingAlert == null)
+            {
+
+                await _dbcontext.Alerts.AddAsync(alert);
+            }
+            else
+            {
+
+                _dbcontext.Entry(existingAlert).CurrentValues.SetValues(alert);
+            }
 
             await _dbcontext.SaveChangesAsync();
         }
+        
         public async Task<List<Alert>> GetNewAlertsAsync()
         {
             return _dbcontext.Alerts
                 .Where(a => a.Status == "WAITING")
                 .ToList();
         }
+  
+
+           
+        }
     }
-}
+
+
+

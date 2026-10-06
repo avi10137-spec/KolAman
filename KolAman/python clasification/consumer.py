@@ -33,7 +33,7 @@ def validate_alert(alert):
 def create_kafka_consumer():
     conf = {
         'bootstrap.servers': 'localhost:9092',
-        'group.id': 'classifier-group15',
+        'group.id': 'classifier-group16',
         'auto.offset.reset': 'earliest'
     }
     consumer = Consumer(conf)
