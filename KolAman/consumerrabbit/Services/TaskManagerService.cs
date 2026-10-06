@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace consumer__rabbit.Models
+namespace consumerrabbit.Services
 {
-    internal class Alert
+    internal class TaskManagerService
     {
     }
 }

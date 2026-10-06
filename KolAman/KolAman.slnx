@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="consumer  rabbit/consumer  rabbit.csproj" />
+  <Project Path="consumerrabbit/consumerrabbit.csproj" />
   <Project Path="FileWatch/FileWatch.csproj" />
 </Solution>
